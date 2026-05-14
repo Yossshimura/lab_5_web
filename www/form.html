@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Викторина</title>
+</head>
+<body>
+
+<h2>Участие в викторине</h2>
+
+<form action="process.php" method="POST">
+    <p>Имя: <input type="text" name="username" placeholder="Введите ваше имя" required></p>
+
+    <p>Возраст: <input type="number" name="age" placeholder="Ваш возраст" required></p>
+
+    <p>Тема викторины:
+        <select name="topic">
+            <option value="IT">IT и программирование</option>
+            <option value="history">История</option>
+            <option value="science">Наука</option>
+        </select>
+    </p>
+
+    <p>
+        <input type="checkbox" name="prize" value="yes"> Хочу получить приз
+    </p>
+
+    <p>
+        Сложность вопросов:<br>
+        <input type="radio" name="difficulty" value="easy"> Лёгкая<br>
+        <input type="radio" name="difficulty" value="medium"> Средняя<br>
+        <input type="radio" name="difficulty" value="hard"> Сложная
+    </p>
+
+    <button type="submit">Отправить</button>
+</form>
+
+<script>
+// Только alert перед отправкой, без preventDefault
+document.querySelector("form").addEventListener("submit", function(e) {
+    const username = document.querySelector("[name='username']").value;
+    const age = document.querySelector("[name='age']").value;
+    alert("Вы отправляете данные:\nИмя: " + username + "\nВозраст: " + age);
+});
+</script>
+
+</body>
+</html>
