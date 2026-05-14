@@ -1,50 +1,13 @@
 <?php
-if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['refresh_api']) && $_GET['refresh_api'] == 1) {
-    header('Content-Type: application/json');
-    require_once 'ApiClient.php';
-    
-    $api = new ApiClient();
-    $url = 'https://opentdb.com/api.php?amount=5';
-    
-    $cacheFile = 'api_cache.json';
-    $cacheTtl = 300;
-    
-    if (file_exists($cacheFile) && time() - filemtime($cacheFile) < $cacheTtl) {
-        $cached = json_decode(file_get_contents($cacheFile), true);
-        echo json_encode([
-            'success' => true,
-            'data' => $cached,
-            'cached' => true
-        ]);
-        exit();
-    }
-    
-    $apiData = $api->request($url);
-    
-    if (isset($apiData['error'])) {
-        echo json_encode([
-            'success' => false,
-            'error' => $apiData['error']
-        ]);
-        exit();
-    }
-    
-    file_put_contents($cacheFile, json_encode($apiData, JSON_UNESCAPED_UNICODE));
-    
-    echo json_encode([
-        'success' => true,
-        'data' => $apiData,
-        'cached' => false
-    ]);
-    exit();
-}
-
 session_start();
+
+require_once 'db.php';
+require_once 'QuizParticipant.php';
 
 $username = trim(htmlspecialchars($_POST['username'] ?? ''));
 $age = htmlspecialchars($_POST['age'] ?? '');
 $topic = htmlspecialchars($_POST['topic'] ?? '');
-$prize = isset($_POST['prize']) ? "Да" : "Нет";
+$prize = isset($_POST['prize']) ? 1 : 0;
 $difficulty = htmlspecialchars($_POST['difficulty'] ?? '');
 
 $errors = [];
@@ -75,19 +38,22 @@ if (!empty($errors)) {
     exit();
 }
 
+$quizParticipant = new QuizParticipant($pdo);
+$quizParticipant->add($username, $age, $topic, $prize, $difficulty);
+
 $_SESSION['username'] = $username;
 $_SESSION['age'] = $age;
 $_SESSION['topic'] = $topic;
-$_SESSION['prize'] = $prize;
+$_SESSION['prize'] = $prize ? "Да" : "Нет";
 $_SESSION['difficulty'] = $difficulty;
 
-$line = $username . ";" . $age . ";" . $topic . ";" . $prize . ";" . $difficulty . "\n";
+$line = $username . ";" . $age . ";" . $topic . ";" . ($prize ? "Да" : "Нет") . ";" . $difficulty . "\n";
 file_put_contents("data.txt", $line, FILE_APPEND);
 
 setcookie("last_username", $username, time() + 86400, "/");
 setcookie("last_age", $age, time() + 86400, "/");
 setcookie("last_topic", $topic, time() + 86400, "/");
-setcookie("last_prize", $prize, time() + 86400, "/");
+setcookie("last_prize", $prize ? "Да" : "Нет", time() + 86400, "/");
 setcookie("last_difficulty", $difficulty, time() + 86400, "/");
 setcookie("last_submission", date('Y-m-d H:i:s'), time() + 3600, "/");
 
