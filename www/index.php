@@ -1,6 +1,12 @@
 <?php
 session_start();
+require_once 'db.php';
+require_once 'QuizParticipant.php';
 require_once 'UserInfo.php';
+
+$quizParticipant = new QuizParticipant($pdo);
+$allRecords = $quizParticipant->getAll();
+$totalCount = $quizParticipant->getCount();
 
 $info = UserInfo::getInfo();
 ?>
@@ -40,6 +46,23 @@ $info = UserInfo::getInfo();
         button:hover {
             background: #e74c3c;
         }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #2c3e50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
     </style>
 </head>
 <body>
@@ -63,7 +86,7 @@ $info = UserInfo::getInfo();
 <?php endif; ?>
 
 <?php if(isset($_SESSION['username']) && !isset($_SESSION['errors'])): ?>
-    <p><strong>Данные из сессии:</strong></p>
+    <p><strong>Данные из сессии (последняя отправленная форма):</strong></p>
     <ul>
         <li>Имя: <?= htmlspecialchars($_SESSION['username']) ?></li>
         <li>Возраст: <?= htmlspecialchars($_SESSION['age'] ?? 'не указан') ?></li>
@@ -115,9 +138,44 @@ $info = UserInfo::getInfo();
 
 <hr>
 
+<h3>Сохранённые данные из базы данных:</h3>
+<p><strong>Всего записей: <?= $totalCount ?></strong></p>
+
+<?php if(count($allRecords) > 0): ?>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Имя</th>
+                <th>Возраст</th>
+                <th>Тема</th>
+                <th>Приз</th>
+                <th>Сложность</th>
+                <th>Дата и время</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach($allRecords as $record): ?>
+                <tr>
+                    <td><?= $record['id'] ?></td>
+                    <td><?= htmlspecialchars($record['name']) ?></td>
+                    <td><?= $record['age'] ?></td>
+                    <td><?= htmlspecialchars($record['topic']) ?></td>
+                    <td><?= $record['prize'] ? 'Да' : 'Нет' ?></td>
+                    <td><?= htmlspecialchars($record['difficulty']) ?></td>
+                    <td><?= $record['created_at'] ?></td>
+                </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+<?php else: ?>
+    <p>Нет сохранённых записей. Заполните форму.</p>
+<?php endif; ?>
+
+<hr>
+
 <p>
-    <a href="form.html">Заполнить форму</a> |
-    <a href="view.php">Посмотреть все данные</a>
+    <a href="form.html">Заполнить форму</a>
 </p>
 
 <script>
