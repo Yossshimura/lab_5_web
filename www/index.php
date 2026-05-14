@@ -4,9 +4,17 @@ require_once 'db.php';
 require_once 'QuizParticipant.php';
 require_once 'UserInfo.php';
 
-$quizParticipant = new QuizParticipant($pdo);
-$allRecords = $quizParticipant->getAll();
-$totalCount = $quizParticipant->getCount();
+$filterAge = isset($_GET['filter_age']) ? intval($_GET['filter_age']) : null;
+
+if ($filterAge !== null && $filterAge > 0) {
+    $quizParticipant = new QuizParticipant($pdo);
+    $allRecords = $quizParticipant->getByAge($filterAge);
+    $totalCount = $quizParticipant->getCountWithFilter($filterAge);
+} else {
+    $quizParticipant = new QuizParticipant($pdo);
+    $allRecords = $quizParticipant->getAll();
+    $totalCount = $quizParticipant->getCount();
+}
 
 $info = UserInfo::getInfo();
 ?>
@@ -62,6 +70,27 @@ $info = UserInfo::getInfo();
         }
         tr:nth-child(even) {
             background-color: #f2f2f2;
+        }
+        .filter-form {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .filter-form input {
+            padding: 8px;
+            margin-right: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .filter-form button {
+            margin-bottom: 0;
+        }
+        .clear-filter {
+            background: #95a5a6;
+        }
+        .clear-filter:hover {
+            background: #7f8c8d;
         }
     </style>
 </head>
@@ -138,8 +167,22 @@ $info = UserInfo::getInfo();
 
 <hr>
 
+<div class="filter-form">
+    <h3>Фильтр по возрасту:</h3>
+    <form method="GET" action="index.php">
+        <input type="number" name="filter_age" placeholder="Минимальный возраст" value="<?= $filterAge ?? '' ?>">
+        <button type="submit">Применить фильтр</button>
+        <?php if($filterAge !== null && $filterAge > 0): ?>
+            <a href="index.php" class="clear-filter" style="display: inline-block; background: #95a5a6; color: white; padding: 8px 16px; border-radius: 5px; text-decoration: none; margin-left: 10px;">Сбросить фильтр</a>
+        <?php endif; ?>
+    </form>
+</div>
+
 <h3>Сохранённые данные из базы данных:</h3>
 <p><strong>Всего записей: <?= $totalCount ?></strong></p>
+<?php if($filterAge !== null && $filterAge > 0): ?>
+    <p><strong>Фильтр применён: возраст &ge; <?= $filterAge ?> лет</strong></p>
+<?php endif; ?>
 
 <?php if(count($allRecords) > 0): ?>
     <table>
@@ -169,7 +212,7 @@ $info = UserInfo::getInfo();
         </tbody>
     </table>
 <?php else: ?>
-    <p>Нет сохранённых записей. Заполните форму.</p>
+    <p>Нет сохранённых записей, соответствующих фильтру.</p>
 <?php endif; ?>
 
 <hr>

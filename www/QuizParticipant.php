@@ -42,6 +42,17 @@ class QuizParticipant {
         return $result['total'];
     }
 
+    public function getCountWithFilter($minAge = null) {
+        if ($minAge !== null) {
+            $stmt = $this->pdo->prepare("SELECT COUNT(*) as total FROM quiz_participants WHERE age >= ?");
+            $stmt->execute([$minAge]);
+        } else {
+            $stmt = $this->pdo->query("SELECT COUNT(*) as total FROM quiz_participants");
+        }
+        $result = $stmt->fetch();
+        return $result['total'];
+    }
+
     public function getByAge($minAge) {
         $stmt = $this->pdo->prepare("SELECT * FROM quiz_participants WHERE age >= ? ORDER BY created_at DESC");
         $stmt->execute([$minAge]);
